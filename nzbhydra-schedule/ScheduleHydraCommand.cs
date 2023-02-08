@@ -137,7 +137,8 @@ namespace nzbhydra_schedule
             Logger.MinLogLevel = logLevelOptionValue;
 
             Logger.WriteLog($"Starting search.", Logger.LogLevel.debug);
-            await nzbHydraInstance.GetNzbsAsync();
+            await nzbHydraInstance.StartSearchAsync();
+            Logger.WriteLog($"Finished search.", Logger.LogLevel.debug);
             //Logger.WriteLog(hydra.SearchTerms[0]);
         }
 
