@@ -128,6 +128,17 @@ namespace nzbhydra_schedule
             }
 
             Logger.WriteLog($"Initializing http client.", Logger.LogLevel.debug);
+
+            try
+            {
+                using (StreamWriter sw = File.AppendText(SearchTermFilePath.FullName))
+                await sw.WriteLineAsync(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Throw(new Exception($"An error occurred when writing to file {SearchTermFilePath.FullName}: {ex.Message}"));
+            }
+
             using var httpClient = new HttpClient();
             foreach (var query in shows)
             {
@@ -203,7 +214,7 @@ namespace nzbhydra_schedule
                     Logger.WriteLog($"Could not validate search term '{validateSearchTerm}'.");
                     continue;
                 }
-                Logger.WriteLog($"Successfully validatet search term '{validateSearchTerm}'.");
+                Logger.WriteLog($"Successfully validated search term '{validateSearchTerm}'.");
                 return validateSearchTerm;
             }
             Logger.WriteLog($"Could not validate any of the provided search terms.", Logger.LogLevel.warn);
