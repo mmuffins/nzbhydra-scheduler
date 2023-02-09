@@ -16,7 +16,8 @@ namespace nzbhydra_schedule
             };
 
             var startCommand = new ScheduleHydraCommand();
-            rootCommand.Add(startCommand.GetCommand());
+            rootCommand.Add(startCommand.GetSearchCommand());
+            rootCommand.Add(startCommand.GetBuildSearchTermsCommand());
             return await rootCommand.InvokeAsync(args);
         }
     }

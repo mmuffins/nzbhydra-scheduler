@@ -66,5 +66,5 @@ namespace nzbhydra_schedule
                 }
             }
         }
-    }
+        }
 }

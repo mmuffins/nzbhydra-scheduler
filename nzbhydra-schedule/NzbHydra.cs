@@ -6,6 +6,7 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -74,9 +75,139 @@ namespace nzbhydra_schedule
             }
         }
 
-        private async Task VerifyHydraConnection()
+        private async Task<List<string>> ReadFileAsync(FileInfo path)
         {
+            Logger.WriteLog($"Reading file {path.FullName}.", Logger.LogLevel.debug);
+            try
+            {
+                return (await File.ReadAllLinesAsync(path.FullName, Encoding.UTF8))
+                    .Where(x => !string.IsNullOrWhiteSpace(x) && !x.StartsWith("#"))
+                    .Select(str => str.Trim())
+                    .Distinct()
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                Logger.Throw(ex);
+            }
 
+            return new List<string>();
+        }
+
+        public async Task GenerateSearchTerms(FileInfo groupsFile, FileInfo showsFile)
+        {
+            if (!groupsFile.Exists)
+            {
+                Logger.Throw(new ArgumentException($"Could not find groups file at {groupsFile.FullName}."));
+            }
+
+            if (!showsFile.Exists)
+            {
+                Logger.Throw(new ArgumentException($"Could not find shows file at {showsFile.FullName}."));
+            }
+
+            if (!SearchTermFilePath.Directory.Exists)
+            {
+                Logger.Throw(new ArgumentException($"Could not output file folder {SearchTermFilePath.Directory.FullName}."));
+            }
+
+
+            List<string> groups = await ReadFileAsync(groupsFile);
+            Logger.WriteLog($"Found {groups.Count} in groups file.");
+
+            if(groups.Count == 0)
+            {
+                Logger.Throw(new ArgumentOutOfRangeException($"No entries found in groups file, aborting program."));
+            }
+
+            List<string> shows = await ReadFileAsync(showsFile);
+            Logger.WriteLog($"Found {shows.Count} in shows file.");
+            if (shows.Count == 0)
+            {
+                Logger.Throw(new ArgumentOutOfRangeException($"No entries found in shows file, aborting program."));
+            }
+
+            Logger.WriteLog($"Initializing http client.", Logger.LogLevel.debug);
+            using var httpClient = new HttpClient();
+            foreach (var query in shows)
+            {
+                Logger.WriteLog($"Checking show {query}.");
+                List<string> matchingGroups = await FindBestGroup(httpClient, query, groups);
+                Logger.WriteLog($"Validating results.");
+                var validatedSearchTerm = await ValidateGroupSearchTerms(httpClient, matchingGroups, query);
+
+                try
+                {
+                    using (StreamWriter sw = File.AppendText(SearchTermFilePath.FullName))
+                    await sw.WriteLineAsync(validatedSearchTerm);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Throw(new Exception($"An error occurred when writing to file {SearchTermFilePath.FullName}: {ex.Message}"));
+                }
+                
+                System.Threading.Thread.Sleep(RequestCooldown * 1000);
+            }
+        }
+
+        private async Task<List<string>> FindBestGroup(HttpClient httpClient, string show, List<string> groups)
+        {
+            var searchTerm = Regex.Replace(show, @":|,|\(|\)", "");
+            var query = new HydraQuery(searchTerm);
+            await QueryNzbHydra(httpClient, query);
+            var validGroups = new List<string>();
+
+            if (query.Results.Count == 0)
+            {
+                Logger.WriteLog("Could not find results for search term {searchTerm}", Logger.LogLevel.err);
+                return validGroups;
+            }
+
+            // shuffle groups to not always get the same one on top
+            var rnd = new Random();
+            var shuffledGroups = groups.OrderBy(item => rnd.Next());
+
+            foreach (var group in shuffledGroups)
+            {
+                // check which of the show search results contains the group and resolution
+                Logger.WriteLog($"Evaluating group {group} and resolution {DefaultResolution}", Logger.LogLevel.debug);
+                var loopResult = query.Results
+                    .Where(r => r.Title.Contains(group, StringComparison.InvariantCultureIgnoreCase))
+                    .Where(r => r.Title.Contains(DefaultResolution, StringComparison.InvariantCultureIgnoreCase))
+                    .Select(r => r.Title)
+                    .ToList();
+
+                Logger.WriteLog($"Found {loopResult.Count} results for group {group}.");
+                loopResult.ForEach(r =>
+                {
+                    Logger.WriteLog($"Result: {r}", Logger.LogLevel.debug);
+                });
+
+                validGroups.Add(group);
+            }
+            return validGroups;
+        }
+
+        private async Task<string> ValidateGroupSearchTerms(HttpClient httpClient, List<string> groups, string searchTerm)
+        {
+            foreach (var group in groups)
+            {
+                var validateSearchTerm = $"{group} {Regex.Replace(searchTerm, @":|,|\(|\)", "")} {DefaultResolution}";
+                Logger.WriteLog($"Validating '{validateSearchTerm}'.");
+
+                var query = new HydraQuery(validateSearchTerm);
+                await QueryNzbHydra(httpClient, query);
+
+                if (query.Results.Count == 0)
+                {
+                    Logger.WriteLog($"Could not validate search term '{validateSearchTerm}'.");
+                    continue;
+                }
+                Logger.WriteLog($"Successfully validatet search term '{validateSearchTerm}'.");
+                return validateSearchTerm;
+            }
+            Logger.WriteLog($"Could not validate any of the provided search terms.", Logger.LogLevel.warn);
+            return string.Empty;
         }
 
         public async Task StartSearchAsync()
@@ -85,8 +216,6 @@ namespace nzbhydra_schedule
             {
                 Logger.Throw(new ArgumentException($"Could not find output directory {NzbDirectory.Exists}."));
             }
-
-            await VerifyHydraConnection();
 
             await ReadSearchTermFileAsync();
 
