@@ -23,6 +23,8 @@ services:
       - CRON=1 13 * * 1
       - LOGLEVEL=debug
       - SEARCHTERMSFILE=/config/searchterms
+      - GROUPSFILE=/config/groups
+      - SHOWSFILE=/config/shows
       - NZBOUTPUTDIRECTORY=/output
       - NZBHYDRAURI=nzbhydra:5076
       - NZBHYDRAAPIKEY=supersecretapikey
@@ -31,6 +33,7 @@ services:
       - MAXAGE=7
       - CATEGORY=Anime
       - INDEXERS=Animetosho
+    # command: ["./start-getsearchterms.sh"] # Optional, only to generate new search terms
 ```
 
 
@@ -41,6 +44,8 @@ services:
 | `CRON=1 13 * * 1` | Run the download each Monday 13:01 |
 | `LOGLEVEL=debug` | Set log level for the application. Possible values are debug, info, warn, err |
 | `SEARCHTERMSFILE=/config/searchterms` | Path to a file containing search terms to look for. Each line should contain a search term. |
+| `SHOWSFILE=/config/shows` | Path to a file containing shows to generate search terms for. Only used when manually specifiying the container entry point. Each line should contain a search term. |
+| `GROUPSFILE=/config/groups` | Path to a file containing release groups to generate search terms for. Only used when manually specifiying the container entry point. Each line should contain a search term. |
 | `NZBOUTPUTDIRECTORY=/output` | Directory to save found nzbs to. |
 | `NZBHYDRAURI=nzbhydra:5076` | The url for nzbhydra.  |
 | `NZBHYDRAAPIKEY=supersecretapikey` | The api key for the nzbhydra api. |
