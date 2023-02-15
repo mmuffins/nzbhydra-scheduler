@@ -70,7 +70,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: ${{ github.workspace }}/docker
+        context: .
+        file: ./Dockerfile
         push: true
         platforms: linux/amd64
         tags: |
