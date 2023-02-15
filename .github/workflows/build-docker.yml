@@ -77,7 +77,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        context: "{{defaultContext}}:docker"
+        # context: "{{defaultContext}}:docker"
+        context: "${{ github.workspace }}/docker"
         push: true
         platforms: linux/amd64
         tags: |
