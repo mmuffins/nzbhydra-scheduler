@@ -68,22 +68,25 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
         
-    - name: ls1
-      run: ls -al "${{ github.workspace }}/docker/"
-      
-    - name: ls2
-      run: ls -al "${{ github.workspace }}/docker/publish"
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ GITHUB.ACTOR }}
+        password: ${{ secrets.GHCRIO_PAT }}
+        logout: true
       
     - name: Build and push
       uses: docker/build-push-action@v4
       with:
-        # context: "{{defaultContext}}:docker"
         context: "${{ github.workspace }}/docker"
         push: true
         platforms: linux/amd64
         tags: |
           mmuffins/nzbhydra-scheduler:latest
           mmuffins/nzbhydra-scheduler:${{ env.version }}
+          ghcr.io/mmuffins/nzbhydra-scheduler:latest
+          ghcr.io/mmuffins/nzbhydra-scheduler:${{ env.version }}
         labels: |
           org.opencontainers.image.title=${{ github.event.repository.name }}
           org.opencontainers.image.description=${{ github.event.repository.description }}
