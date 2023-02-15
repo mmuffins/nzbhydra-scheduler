@@ -6,6 +6,7 @@ RUN apt update && apt install -y dos2unix cron && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/scheduler
 COPY start.sh .
+COPY start-getsearchterms.sh .
 COPY publish/* ./publish/
 
 # Fix line endings && execute permissions
