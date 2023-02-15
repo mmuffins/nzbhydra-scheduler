@@ -54,16 +54,7 @@ jobs:
       with:
         name: build
         path: ${{ github.workspace }}/docker/publish
-        
-    - name: ls1
-      run: ls -al "${{ github.workspace }}/docker/"
-      
-    - name: ls2
-      run: ls -al "${{ github.workspace }}/docker/publish"
-      
-    - name: ls3
-      run: ls -al "{{defaultContext}}:docker"
-        
+
     - name: Docker Setup QEMU
       uses: docker/setup-qemu-action@v1
 
@@ -75,6 +66,12 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+        
+    - name: ls1
+      run: ls -al "${{ github.workspace }}/docker/"
+      
+    - name: ls2
+      run: ls -al "${{ github.workspace }}/docker/publish"
       
     - name: Build and push
       uses: docker/build-push-action@v4
