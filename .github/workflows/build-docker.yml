@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  version: "0.0.1.${{ github.run_number }}${{ github.run_attempt }}"
+  version: "1.0.0.${{ github.run_number }}${{ github.run_attempt }}"
 
 jobs:
   build:
@@ -43,7 +43,7 @@ jobs:
         
 
   release:
-    # if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
+    if: ${{ github.event_name != 'pull_request'  && github.ref_name == 'main' }}
     runs-on: ubuntu-latest
     needs: build
     environment: dockerhub
