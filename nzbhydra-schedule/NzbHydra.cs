@@ -6,8 +6,10 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using System.Xml.Linq;
 
 namespace nzbhydra_schedule
@@ -131,7 +133,8 @@ namespace nzbhydra_schedule
 
             try
             {
-                using (StreamWriter sw = File.AppendText(SearchTermFilePath.FullName))
+                using StreamWriter sw = File.AppendText(SearchTermFilePath.FullName);
+                await sw.WriteLineAsync();
                 await sw.WriteLineAsync(DateTime.Now.ToString("yyyy-MM-dd HH:mm"));
             }
             catch (Exception ex)
@@ -156,8 +159,9 @@ namespace nzbhydra_schedule
                 {
                     Logger.Throw(new Exception($"An error occurred when writing to file {SearchTermFilePath.FullName}: {ex.Message}"));
                 }
-                
-                System.Threading.Thread.Sleep(RequestCooldown * 1000);
+                Logger.WriteLog($"start sleep {DateTime.Now}");
+                Thread.Sleep(RequestCooldown * 1000);
+                Logger.WriteLog($"end sleep {DateTime.Now}");
             }
         }
 
@@ -237,16 +241,18 @@ namespace nzbhydra_schedule
                 Logger.WriteLog($"Checking search term {query.SearchTerm}.");
                 await QueryNzbHydra(httpClient, query);
                 await query.SaveNzbAsync(httpClient, NzbDirectory);
-                System.Threading.Thread.Sleep(RequestCooldown * 1000);
+                Logger.WriteLog($"start sleep {DateTime.Now}");
+                Thread.Sleep(RequestCooldown * 1000);
+                Logger.WriteLog($"end sleep {DateTime.Now}");
             }
 
         }
 
         private async Task QueryNzbHydra(HttpClient httpClient, HydraQuery query)
         {
-            var uri = $"http://{HydraUrl}/api?apikey={ApiKey}&t=search&extended=1&password=1&limit=100&offset=0&category={Category}&indexers={Indexers}&minsize={MinSize}&maxsize={MaxSize}&maxage={MaxAge}&q={query.SearchTerm}";
+            var uri = $"http://{HydraUrl}/api?apikey={ApiKey}&t=search&extended=1&password=1&limit=100&offset=0&category={Category}&indexers={Indexers}&minsize={MinSize}&maxsize={MaxSize}&maxage={MaxAge}&q={HttpUtility.UrlEncode(query.SearchTerm)}";
             Logger.WriteLog($"Requesting {uri}", Logger.LogLevel.debug);
-
+            
             string? content = null;
             try
             {
@@ -254,7 +260,8 @@ namespace nzbhydra_schedule
                 query.StatusCode = (int)response.StatusCode;
                 Logger.WriteLog($"Response: {query.StatusCode}", Logger.LogLevel.debug); ;
 
-                content = await response.Content.ReadAsStringAsync();
+                var responseArray = await response.Content.ReadAsByteArrayAsync();
+                content = Encoding.UTF8.GetString(responseArray);
             }
             catch (Exception ex)
             {
