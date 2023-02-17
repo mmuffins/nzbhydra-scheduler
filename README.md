@@ -1,3 +1,4 @@
+![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/mmuffins/nzbhydra-scheduler/latest)
 # NzbHydra Scheduler
 A simple scheduler for nzbhydra.
 
