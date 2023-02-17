@@ -36,7 +36,11 @@ services:
       - INDEXERS=Animetosho
     # command: ["./start-getsearchterms.sh"] # Optional, only to generate new search terms
 ```
-
+## Getting search terms
+It is possible to override the entrypoint to generate search terms from the group and shows file:
+```
+docker-compose run --rm --entrypoint="./start-getsearchterms.sh" nzbhydrascheduler
+```
 
 ## Parameters
 
@@ -56,3 +60,5 @@ services:
 | `CATEGORY=Anime` | The nzbhydra category to search in. |
 | `INDEXERS=Animetosho` | The indexers to include in the search. |
 | `REQUESTCOOLDOWN=30` | Cooldown between searches in seconds. |
+
+## 
