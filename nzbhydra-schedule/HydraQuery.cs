@@ -69,7 +69,7 @@ namespace nzbhydra_schedule
 
                 if (File.Exists(nzbPath))
                 {
-                    Logger.WriteLog($"{nzbPath} already exists, skpping download", Logger.LogLevel.warn);
+                    Logger.WriteLog($"File already exists, skpping download", Logger.LogLevel.warn);
                     continue;
                 }
 

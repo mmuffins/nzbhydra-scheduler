@@ -159,9 +159,8 @@ namespace nzbhydra_schedule
                 {
                     Logger.Throw(new Exception($"An error occurred when writing to file {SearchTermFilePath.FullName}: {ex.Message}"));
                 }
-                Logger.WriteLog($"start sleep {DateTime.Now}");
+                Logger.WriteLog($"Sleeping for {RequestCooldown} seconds", Logger.LogLevel.debug);
                 Thread.Sleep(RequestCooldown * 1000);
-                Logger.WriteLog($"end sleep {DateTime.Now}");
             }
         }
 
@@ -241,9 +240,8 @@ namespace nzbhydra_schedule
                 Logger.WriteLog($"Checking search term {query.SearchTerm}.");
                 await QueryNzbHydra(httpClient, query);
                 await query.SaveNzbAsync(httpClient, NzbDirectory);
-                Logger.WriteLog($"start sleep {DateTime.Now}");
+                Logger.WriteLog($"Sleeping for {RequestCooldown} seconds", Logger.LogLevel.debug);
                 Thread.Sleep(RequestCooldown * 1000);
-                Logger.WriteLog($"end sleep {DateTime.Now}");
             }
 
         }
