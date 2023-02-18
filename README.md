@@ -5,8 +5,6 @@ A simple scheduler for nzbhydra.
 
 ## Usage
 
-Here are some example snippets to help you get started creating a container.
-
 ### docker-compose
 
 ```yaml
@@ -23,6 +21,7 @@ services:
       - PGID="1000"
       - TZ=Europe/Vienna
       - CRON=1 13 * * 1
+      - SEARCHFREQUENCY=72
       - LOGLEVEL=debug
       - SEARCHTERMSFILE=/config/searchterms
       - GROUPSFILE=/config/groups
@@ -35,7 +34,6 @@ services:
       - MAXAGE=7
       - CATEGORY=Anime
       - INDEXERS=Animetosho
-    # command: ["./start-getsearchterms.sh"] # Optional, only to generate new search terms
 ```
 ### Getting search terms
 It is possible to override the entrypoint to generate search terms from the group and shows file:
@@ -48,6 +46,7 @@ docker-compose run --rm --entrypoint="./start-getsearchterms.sh" nzbhydraschedul
 | Parameter | Function |
 | :----: | --- |
 | `CRON=1 13 * * 1` | Run the download each Monday 13:01 |
+| `SEARCHFREQUENCY=72` | The minimum delay between two search runs in hours. |
 | `LOGLEVEL=debug` | Set log level for the application. Possible values are debug, info, warn, err |
 | `SEARCHTERMSFILE=/config/searchterms` | Path to a file containing search terms to look for. Each line should contain a search term. |
 | `SHOWSFILE=/config/shows` | Path to a file containing shows to generate search terms for. Only used when manually specifiying the container entry point. Each line should contain a search term. |
@@ -62,4 +61,6 @@ docker-compose run --rm --entrypoint="./start-getsearchterms.sh" nzbhydraschedul
 | `INDEXERS=Animetosho` | The indexers to include in the search. |
 | `REQUESTCOOLDOWN=30` | Cooldown between searches in seconds. |
 
-## 
+## Last search date and max age.
+After each successful search run a timestamp file containing the current date and time is created. If a search run finds a timestamp file it will automatically limit searches to only include results between the current time and the time in the timestamp file.
+If the timestamp file and max age parameter overlap the shortertime frame will be used. 

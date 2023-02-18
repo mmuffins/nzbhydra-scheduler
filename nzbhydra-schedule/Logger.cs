@@ -30,6 +30,12 @@ namespace nzbhydra_schedule
             Console.WriteLine($"[{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}] {logLevel.ToString()}: {message}");
         }
 
+        public static void Throw(string message, Exception exception)
+        {
+            WriteLog(message, LogLevel.err);
+            Throw(exception);
+        }
+
         public static void Throw(Exception exception)
         {
             WriteLog(exception.Message, LogLevel.err);

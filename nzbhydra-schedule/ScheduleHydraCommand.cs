@@ -41,12 +41,14 @@ namespace nzbhydra_schedule
                 (Option<FileInfo>)options.First(o => o.Name == "showsfile"),
                 new NzbHydraBinder(
                     (Option<FileInfo>)commonOptions.First(o => o.Name == "searchterms"),
+                    (Option<FileInfo>)searchOptions.First(o => o.Name == "timestampfile"),
                     (Option<DirectoryInfo>)searchOptions.First(o => o.Name == "output"),
                     (Option<string>)commonOptions.First(o => o.Name == "nzbhydra-uri"),
                     (Option<string>)commonOptions.First(o => o.Name == "nzbhydra-api-key"),
                     (Option<int>)commonOptions.First(o => o.Name == "minsize"),
                     (Option<int>)commonOptions.First(o => o.Name == "maxsize"),
                     (Option<int>)commonOptions.First(o => o.Name == "maxage"),
+                    (Option<int>)searchOptions.First(o => o.Name == "search-frequency"),
                     (Option<string>)commonOptions.First(o => o.Name == "default-resolution"),
                     (Option<bool>)searchOptions.First(o => o.Name == "append-default-resolution"),
                     (Option<int>)commonOptions.First(o => o.Name == "request-cooldown"),
@@ -84,12 +86,14 @@ namespace nzbhydra_schedule
                 (Option<Logger.LogLevel>)commonOptions.First(o => o.Name == "loglevel"),
                 new NzbHydraBinder(
                     (Option<FileInfo>)commonOptions.First(o => o.Name == "searchterms"),
+                    (Option<FileInfo>)options.First(o => o.Name == "timestampfile"),
                     (Option<DirectoryInfo>)options.First(o => o.Name == "output"),
                     (Option<string>)commonOptions.First(o => o.Name == "nzbhydra-uri"),
                     (Option<string>)commonOptions.First(o => o.Name == "nzbhydra-api-key"),
                     (Option<int>)commonOptions.First(o => o.Name == "minsize"),
                     (Option<int>)commonOptions.First(o => o.Name == "maxsize"),
                     (Option<int>)commonOptions.First(o => o.Name == "maxage"),
+                    (Option<int>)options.First(o => o.Name == "search-frequency"),
                     (Option<string>)commonOptions.First(o => o.Name == "default-resolution"),
                     (Option<bool>)options.First(o => o.Name == "append-default-resolution"),
                     (Option<int>)commonOptions.First(o => o.Name == "request-cooldown"),
@@ -121,6 +125,24 @@ namespace nzbhydra_schedule
             addDefaultResolutionOption.AddAlias("-d");
             addDefaultResolutionOption.SetDefaultValue("1080p");
             options.Add(addDefaultResolutionOption);
+            
+            var timestampFileOption = new Option<FileInfo>("--timestampfile")
+            {
+                IsRequired = false,
+                Description = "Path to the timestamp file.",
+            };
+            timestampFileOption.AddAlias("-t");
+            timestampFileOption.SetDefaultValue(null);
+            options.Add(timestampFileOption);
+
+            var searchFrequencyOption = new Option<int>("--search-frequency")
+            {
+                IsRequired = false,
+                Description = "Minimum delay between searches in hours."
+            };
+            searchFrequencyOption.AddAlias("-f");
+            searchFrequencyOption.SetDefaultValue(72);
+            options.Add(searchFrequencyOption);
 
             return options;
         }
@@ -239,7 +261,7 @@ namespace nzbhydra_schedule
             var requestCooldownOption = new Option<int>("--request-cooldown")
             {
                 IsRequired = false,
-                Description = "Delay between nzbhydra searches in seconds."
+                Description = "Delay between nzbhydra requests in seconds."
             };
             requestCooldownOption.AddAlias("-q");
             requestCooldownOption.SetDefaultValue(10);
@@ -252,9 +274,24 @@ namespace nzbhydra_schedule
         {
             Logger.MinLogLevel = logLevelOptionValue;
 
-            Logger.WriteLog($"Starting search.", Logger.LogLevel.debug);
+
+            Logger.WriteLog($"Checking last search run date.");
+            if (nzbHydraInstance.LastSuccesfulSearch == DateTime.MinValue)
+            {
+                Logger.WriteLog($"No last successful search run date was set.", Logger.LogLevel.debug);
+                nzbHydraInstance.LastSuccesfulSearch = await nzbHydraInstance.GetLastSearchTimestamp();
+            }
+
+            var lastSearchAge = DateTime.UtcNow.Subtract(nzbHydraInstance.LastSuccesfulSearch);
+            Logger.WriteLog($"The last successful search run was performed {lastSearchAge.TotalHours.ToString("0.#")} hours ago", Logger.LogLevel.debug);
+
+            if (lastSearchAge.TotalHours < nzbHydraInstance.SearchFrequencyHours)
+            {
+                Logger.WriteLog($"The minimum search freqency threshold is {nzbHydraInstance.SearchFrequencyHours} hours. Aborting search.", Logger.LogLevel.debug);
+                return;
+            }
+
             await nzbHydraInstance.StartSearchAsync();
-            Logger.WriteLog($"Finished search.", Logger.LogLevel.debug);
         }
 
         public async Task BuildSearchTermsHandler(Logger.LogLevel logLevelOptionValue, FileInfo groupsFileOptionValue, FileInfo showsFileOptionValue, NzbHydra nzbHydraInstance)
@@ -269,27 +306,31 @@ namespace nzbhydra_schedule
         public class NzbHydraBinder : BinderBase<NzbHydra>
         {
             private readonly Option<FileInfo> _searchTermsOption;
+            private readonly Option<FileInfo> _timestampFileOption;
             private readonly Option<DirectoryInfo> _outputOption;
             private readonly Option<string> _nzbHydraUriOption;
             private readonly Option<string> _apikeyOption;
             private readonly Option<int> _minSizeOption;
             private readonly Option<int> _maxSizeOption;
             private readonly Option<int> _maxAgeOption;
+            private readonly Option<int> _searchFrequencyOption;
             private readonly Option<string> _defaultResolutionOption;
             private readonly Option<bool> _addDefaultResolutionOption;
             private readonly Option<int> _requestCooldownOption;
             private readonly Option<string> _categoryOption;
             private readonly Option<string> _indexersOption;
 
-            public NzbHydraBinder(Option<FileInfo> searchTermsOption, Option<DirectoryInfo> outputOption, Option<string> nzbHydraUriOption, Option<string> apikeyOption, Option<int> minSizeOption, Option<int> maxSizeOption, Option<int> maxAgeOption, Option<string> defaultResolutionOption, Option<bool> addDefaultResolutionOption, Option<int> requestCooldownOption, Option<string> categoryOption, Option<string> indexersOption)
+            public NzbHydraBinder(Option<FileInfo> searchTermsOption, Option<FileInfo> timestampPathOption, Option<DirectoryInfo> outputOption, Option<string> nzbHydraUriOption, Option<string> apikeyOption, Option<int> minSizeOption, Option<int> maxSizeOption, Option<int> maxAgeOption, Option<int> searchFrequencyOption, Option<string> defaultResolutionOption, Option<bool> addDefaultResolutionOption, Option<int> requestCooldownOption, Option<string> categoryOption, Option<string> indexersOption)
             {
                 _searchTermsOption = searchTermsOption;
+                _timestampFileOption = timestampPathOption;
                 _outputOption = outputOption;
                 _nzbHydraUriOption= nzbHydraUriOption;
                 _apikeyOption = apikeyOption;
                 _minSizeOption = minSizeOption;
                 _maxSizeOption = maxSizeOption;
                 _maxAgeOption = maxAgeOption;
+                _searchFrequencyOption = searchFrequencyOption;
                 _defaultResolutionOption = defaultResolutionOption;
                 _addDefaultResolutionOption = addDefaultResolutionOption;
                 _requestCooldownOption = requestCooldownOption;
@@ -302,6 +343,7 @@ namespace nzbhydra_schedule
                 {
                     NzbDirectory = bindingContext.ParseResult.GetValueForOption(_outputOption),
                     SearchTermFilePath = bindingContext.ParseResult.GetValueForOption(_searchTermsOption),
+                    TimestampFilePath = bindingContext.ParseResult.GetValueForOption(_timestampFileOption),
                     ApiKey = bindingContext.ParseResult.GetValueForOption(_apikeyOption),
                     AppendResolution = bindingContext.ParseResult.GetValueForOption(_addDefaultResolutionOption),
                     DefaultResolution = bindingContext.ParseResult.GetValueForOption(_defaultResolutionOption),
@@ -310,6 +352,7 @@ namespace nzbhydra_schedule
                     MinSize = bindingContext.ParseResult.GetValueForOption(_minSizeOption),
                     MaxSize = bindingContext.ParseResult.GetValueForOption(_maxSizeOption),
                     MaxAge = bindingContext.ParseResult.GetValueForOption(_maxAgeOption),
+                    SearchFrequencyHours = bindingContext.ParseResult.GetValueForOption(_searchFrequencyOption),
                     Category = bindingContext.ParseResult.GetValueForOption(_categoryOption),
                     Indexers = bindingContext.ParseResult.GetValueForOption(_indexersOption)
                 };
