@@ -287,7 +287,7 @@ namespace nzbhydra_schedule
 
             if (lastSearchAge.TotalHours < nzbHydraInstance.SearchFrequencyHours)
             {
-                Logger.WriteLog($"The minimum search freqency threshold is {nzbHydraInstance.SearchFrequencyHours} hours. Aborting search.", Logger.LogLevel.debug);
+                Logger.WriteLog($"The minimum search frequency threshold is {nzbHydraInstance.SearchFrequencyHours} hours. Aborting search.", Logger.LogLevel.debug);
                 return;
             }
 
