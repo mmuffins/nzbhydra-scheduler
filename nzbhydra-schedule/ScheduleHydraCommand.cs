@@ -283,9 +283,10 @@ namespace nzbhydra_schedule
             }
 
             var lastSearchAge = DateTime.UtcNow.Subtract(nzbHydraInstance.LastSuccesfulSearch);
-            Logger.WriteLog($"The last successful search run was performed {lastSearchAge.TotalHours.ToString("0.#")} hours ago", Logger.LogLevel.debug);
+            var totalHoursSinceLastSearch = (int)(Math.Ceiling(lastSearchAge.TotalHours));
+            Logger.WriteLog($"The last successful search run was performed {totalHoursSinceLastSearch} hours ago", Logger.LogLevel.debug);
 
-            if (lastSearchAge.TotalHours < nzbHydraInstance.SearchFrequencyHours)
+            if (totalHoursSinceLastSearch < nzbHydraInstance.SearchFrequencyHours)
             {
                 Logger.WriteLog($"The minimum search frequency threshold is {nzbHydraInstance.SearchFrequencyHours} hours. Aborting search.", Logger.LogLevel.debug);
                 return;
