@@ -19,7 +19,7 @@ jobs:
       build_framework: net7.0
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
@@ -49,7 +49,7 @@ jobs:
     environment: dockerhub
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Get artifacts
       uses: actions/download-artifact@v3
       with:
