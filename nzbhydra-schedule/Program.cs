@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using static System.Net.Mime.MediaTypeNames;
+using System.CommandLine;
 
 namespace nzbhydra_schedule
 {
@@ -9,16 +8,12 @@ namespace nzbhydra_schedule
         {
             Logger.WriteLog($"Starting NzbHydra Scheduler.");
 
-            var rootCommand = new RootCommand()
-            {
-                Name = "NzbHydraScheduler",
-                Description = "Schedules searches in NzbHydra."
-            };
+            var rootCommand = new RootCommand("Schedules searches in NzbHydra.");
 
             var startCommand = new ScheduleHydraCommand();
             rootCommand.Add(startCommand.GetSearchCommand());
             rootCommand.Add(startCommand.GetBuildSearchTermsCommand());
-            return await rootCommand.InvokeAsync(args);
+            return await rootCommand.Parse(args).InvokeAsync();
         }
     }
 }
