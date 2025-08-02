@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Generate Search Terms": {
+      "commandName": "Project",
+      "commandLineArgs": "getsearchterms\r\n--loglevel debug\r\n--searchterms \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\searchtermsNEW.txt\"\r\n--output \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\nzb\"\r\n--default-resolution \"1080p\"\r\n--append-default-resolution false\r\n--minsize 1\r\n--maxsize 900000\r\n--maxage 30\r\n--search-frequency 1\r\n--request-cooldown 10\r\n--nzbhydra-uri \"localhost:5076\"\r\n--nzbhydra-api-key \"XXXXXXX\"\r\n--groupsfile \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\groups.txt\"\r\n--showsfile \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\shows.txt\"\r\n--category \"Anime\"\r\n--indexers \"Animetosho\""
+    },
+    "Start Serach": {
+      "commandName": "Project",
+      "commandLineArgs": "search\r\n--loglevel info\r\n--searchterms \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\searchterms\"\r\n--output \"C:\\Users\\email_000\\source\\nzbhydra-schedule\\test\\nzb\"\r\n--default-resolution \"1080p\"\r\n--append-default-resolution false\r\n--minsize 1\r\n--maxsize 900000\r\n--maxage 90\r\n--search-frequency 24\r\n--request-cooldown 10\r\n--nzbhydra-uri \"nzbhydra.lan:80\"\r\n--nzbhydra-api-key \"XXXXXXX\"\r\n--category \"Anime\"\r\n--indexers \"Animetosho\""
+    }
+  }
+}
