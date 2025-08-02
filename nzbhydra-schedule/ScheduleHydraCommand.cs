@@ -33,9 +33,9 @@ namespace nzbhydra_schedule
 
             command.SetAction(async parseResult =>
             {
-                var logLevelOptionValue = parseResult.GetValue((Option<Logger.LogLevel>)commonOptions.First(o => o.Name == "loglevel"));
-                var groupsFileOptionValue = parseResult.GetValue((Option<FileInfo>)options.First(o => o.Name == "groupsfile"));
-                var showsFileOptionValue = parseResult.GetValue((Option<FileInfo>)options.First(o => o.Name == "showsfile"));
+                var logLevelOptionValue = parseResult.GetValue((Option<Logger.LogLevel>)commonOptions.First(o => o.Name == "--loglevel"));
+                var groupsFileOptionValue = parseResult.GetValue((Option<FileInfo>)options.First(o => o.Name == "--groupsfile"));
+                var showsFileOptionValue = parseResult.GetValue((Option<FileInfo>)options.First(o => o.Name == "--showsfile"));
                 var nzbHydra = CreateNzbHydra(parseResult, commonOptions, searchOptions);
                 await BuildSearchTermsHandler(logLevelOptionValue, groupsFileOptionValue, showsFileOptionValue, nzbHydra);
             });
@@ -64,7 +64,7 @@ namespace nzbhydra_schedule
 
             command.SetAction(async parseResult =>
             {
-                var logLevelOptionValue = parseResult.GetValue((Option<Logger.LogLevel>)commonOptions.First(o => o.Name == "loglevel"));
+                var logLevelOptionValue = parseResult.GetValue((Option<Logger.LogLevel>)commonOptions.First(o => o.Name == "--loglevel"));
                 var nzbHydra = CreateNzbHydra(parseResult, commonOptions, options);
                 await StartSearchHandler(logLevelOptionValue, nzbHydra);
             });
@@ -250,20 +250,20 @@ namespace nzbhydra_schedule
         {
             return new NzbHydra
             {
-                NzbDirectory = parseResult.GetValue((Option<DirectoryInfo>)searchOptions.First(o => o.Name == "output")),
-                SearchTermFilePath = parseResult.GetValue((Option<FileInfo>)commonOptions.First(o => o.Name == "searchterms")),
-                TimestampFilePath = parseResult.GetValue((Option<FileInfo?>)searchOptions.First(o => o.Name == "timestampfile")),
-                ApiKey = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "nzbhydra-api-key")),
-                AppendResolution = parseResult.GetValue((Option<bool>)searchOptions.First(o => o.Name == "append-default-resolution")),
-                DefaultResolution = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "default-resolution")),
-                RequestCooldown = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "request-cooldown")),
-                HydraUrl = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "nzbhydra-uri")),
-                MinSize = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "minsize")),
-                MaxSize = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "maxsize")),
-                MaxAge = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "maxage")),
-                SearchFrequencyHours = parseResult.GetValue((Option<int>)searchOptions.First(o => o.Name == "search-frequency")),
-                Category = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "category")),
-                Indexers = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "indexers"))
+                NzbDirectory = parseResult.GetValue((Option<DirectoryInfo>)searchOptions.First(o => o.Name == "--output")),
+                SearchTermFilePath = parseResult.GetValue((Option<FileInfo>)commonOptions.First(o => o.Name == "--searchterms")),
+                TimestampFilePath = parseResult.GetValue((Option<FileInfo?>)searchOptions.First(o => o.Name == "--timestampfile")),
+                ApiKey = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "--nzbhydra-api-key")),
+                AppendResolution = parseResult.GetValue((Option<bool>)searchOptions.First(o => o.Name == "--append-default-resolution")),
+                DefaultResolution = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "--default-resolution")),
+                RequestCooldown = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "--request-cooldown")),
+                HydraUrl = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "--nzbhydra-uri")),
+                MinSize = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "--minsize")),
+                MaxSize = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "--maxsize")),
+                MaxAge = parseResult.GetValue((Option<int>)commonOptions.First(o => o.Name == "--maxage")),
+                SearchFrequencyHours = parseResult.GetValue((Option<int>)searchOptions.First(o => o.Name == "--search-frequency")),
+                Category = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "--category")),
+                Indexers = parseResult.GetValue((Option<string>)commonOptions.First(o => o.Name == "--indexers"))
             };
         }
     }
