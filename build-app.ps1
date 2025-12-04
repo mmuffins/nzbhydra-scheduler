@@ -1,6 +1,6 @@
 $build_configuration = "Release"
 $build_runtime = "linux-x64"
-$build_framework = "net7.0"
+$build_framework = "net10.0"
 $version = "0.0.4"
 $docker_imageName = "nzbhydra-scheduler"
 
@@ -14,4 +14,4 @@ New-Item -Path "./docker/publish" -ItemType Directory
 Copy-Item -Path "./publish/$build_runtime/*" -Destination "./docker/publish"
 
 Set-Location -Path ./docker
-docker build -t $docker_imageName .
+podman build -t $docker_imageName .
