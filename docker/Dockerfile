@@ -1,5 +1,5 @@
 
-FROM mcr.microsoft.com/dotnet/runtime:7.0
+FROM mcr.microsoft.com/dotnet/runtime:10.0
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && apt install -y dos2unix cron && rm -rf /var/lib/apt/lists/*
