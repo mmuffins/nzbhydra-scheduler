@@ -1,0 +1,25 @@
+name: PR auto-approve
+on: pull_request
+
+permissions:
+  pull-requests: write
+
+jobs:
+  pr-auto-approve:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]'
+      && github.repository == 'mmuffins/nzbhydra-scheduler'
+      && (contains(github.event.pull_request.labels.*.name, 'github_actions')
+      || contains(github.event.pull_request.labels.*.name, 'dependencies'))
+    steps:
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Approve a PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
